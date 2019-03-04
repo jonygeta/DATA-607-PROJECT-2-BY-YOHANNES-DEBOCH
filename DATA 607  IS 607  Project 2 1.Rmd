@@ -1,0 +1,90 @@
+---
+title: "DATA 607  IS 607 – Project 2 1.Rmd"
+author: "Yohannes Deboch"
+date: "March 3, 2019"
+output: html_document
+---
+```{r}
+
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+```
+Data 1
+UNICEF under-five child mortality 
+https://sejdemyr.github.io/r-tutorials/basics/data/unicef-u5mr.csv
+
+ Create a .CSV file (or optionally, a MySQL database!) that includes all of the information
+included in the dataset. You’re encouraged to use a “wide” structure similar to how the
+information appears in the discussion item, so that you can practice tidying and
+transformations as described below.
+  Read the information from your .CSV file into R, and use tidyr and dplyr as needed to
+tidy and transform your data. [Most of your grade will be based on this step!]
+
+```{r}
+dt <- read.csv("unicef-u5mr.csv")
+```
+
+Few first few rows
+```{r}
+head(dt)
+```
+View column names
+```{r}
+names(dt)
+```
+View data types
+```{r}
+sapply(dt,class)
+```
+Transform wide to long format
+```{r}
+dt_tidy <- gather(dt, Year,Value,-CountryName)
+head(dt_tidy)
+```
+Extract Year and convert to numeric
+```{r}
+dt_tidy$Year <- str_extract(dt_tidy$Year,"\\d+$")
+dt_tidy$Year <- as.numeric(dt_tidy$Year)
+```
+
+
+
+ Perform the analysis requested in the discussion item.
+
+Average Child Mortality over the years
+```{r}
+dt_tidy %>%
+    group_by(Year)%>%
+    summarise(avg = mean(Value, na.rm = TRUE)) %>%
+    ggplot(aes(Year,avg))+geom_line()+theme_classic()+ggtitle("AVerage Child Mortality Over The Years")
+```
+From the graph we can see that average child mortality has decreased over the years.
+
+Top 5 country with highest child mortality
+```{r}
+dt_tidy %>%
+    filter(Year == max(Year))%>%
+    arrange(-Value)%>%
+    head()
+```
+Angola,Chad,Somalia,Central African Republic ,Sierra Leone, Mali are the top country with highest child mortality in year 2015.
+Top 5 country with lowest child mortality
+```{r}
+dt_tidy %>%
+    filter(Year == max(Year))%>%
+    arrange(Value)%>%
+    head()
+```
+Luxembourg ,  Iceland,Finland ,  Norway , Slovenia, Cyprus are the top country with lowest child mortality in year 2015.
+
+Conclusion: From the analysis we can say that child mortality has decrease gradually over the years. African countries has the highest child mortality and developed countries lowest child mortality.
+Your code should be in an R Markdown file, posted to rpubs.com, and should include
+narrative descriptions of your data cleanup work, analysis, and conclusions.

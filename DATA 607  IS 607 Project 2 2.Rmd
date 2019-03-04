@@ -1,0 +1,99 @@
+---
+title: "DATA 607  IS 607 – Project 2 1.Rmd"
+author: "Yohannes Deboch"
+date: "March 3, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+```
+
+Data
+Default of credit card clients Data Set 
+http://archive.ics.uci.edu/ml/datasets/default+of+credit+card+clients
+ Create a .CSV file (or optionally, a MySQL database!) that includes all of the information
+included in the dataset. You’re encouraged to use a “wide” structure similar to how the
+information appears in the discussion item, so that you can practice tidying and
+transformations as described below.
+ Read the information from your .CSV file into R, and use tidyr and dplyr as needed to
+tidy and transform your data. [Most of your grade will be based on this step!]
+
+Read the data
+```{r}
+credit <- read.csv("default of credit card clients.csv", skip = 1)
+```
+Few First rows of the data
+```{r}
+head(credit)
+```
+Get summary of the data set
+```{r}
+glimpse(credit)
+```
+
+Correct wrong column name
+```{r}
+colnames(credit)[colnames(credit)=="PAY_0"] <- "PAY_1"
+```
+
+Assign value to Sex, Education and Marriage
+```{r}
+credit$SEX <- recode(credit$SEX, `1`="Male",`2`="Female")
+
+credit$EDUCATION <- recode(credit$EDUCATION, `1`="Graduate School",`2`="University",
+                           `3`="High School",`4`="Others")
+
+credit$MARRIAGE <- recode(credit$MARRIAGE, `1`="Married",`2`="Single",`3`="Others")
+```
+Tranform wide to long format
+```{r}
+credit %>%
+    gather("Past Payment","Payment count",PAY_1:PAY_6) %>%
+    gather(Bill,"Bill Amount",BILL_AMT1:BILL_AMT6)%>%
+    gather(Payment,"Payment Amount",PAY_AMT1:PAY_AMT6) ->
+    credit_long
+```
+Print first few rows of the data
+```{r}
+head(credit_long)
+```
+
+
+ Perform the analysis requested in the discussion item.
+View summary statistics
+```{r}
+summary(credit_long)
+```
+Average of persons is 35.49, average payment count is -0.1824, average Bill amount is  44977 , average payment amount is  5275 .
+Frequency table of the data
+```{r}
+credit_long %>%
+    select(SEX, EDUCATION, MARRIAGE, `Past Payment`, Bill, Payment,default.payment.next.month)%>%
+sapply(table)
+```
+Most customers are female, Maximum has Univeristy Education, Most of them are Single. 
+
+```{r}
+credit_long%>%
+    group_by(SEX)%>%
+    summarise(avg_bill = mean(`Bill Amount`, na.rm = TRUE), avg_pay=mean(`Payment Amount`,na.rm = TRUE))
+```
+Average bill amount of female is 43649 and male is  47001.
+Average Payment amount for female is 5235 and male is 5336.
+
+```{r}
+prop.table(table(credit$SEX, credit$default.payment.next.month))
+```
+
+
+Conclusion: From the above analysis we conclude that Most customers are female, Maximum has Univeristy Education, Most of them are Single. Males bill and payment is higher than female. Femlaes are more likely to be credit defaulter than males.
+
+
+ Your code should be in an R Markdown file, posted to rpubs.com, and should include
+narrative descriptions of your data cleanup work, analysis, and conclusions.

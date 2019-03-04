@@ -1,0 +1,114 @@
+---
+title: "DATA 607  IS 607 – Project 2 1.Rmd"
+author: "Yohannes Deboch"
+date: "March 3, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+```
+Data 3
+Population, total
+https://data.worldbank.org/indicator/SP.POP.TOTL
+
+ Create a .CSV file (or optionally, a MySQL database!) that includes all of the information
+included in the dataset. You’re encouraged to use a “wide” structure similar to how the
+information appears in the discussion item, so that you can practice tidying and
+transformations as described below.
+ Read the information from your .CSV file into R, and use tidyr and dplyr as needed to
+tidy and transform your data. [Most of your grade will be based on this step!]
+
+```{r}
+pop <- read.csv("API_SP.POP.TOTL_DS2_en_csv_v2_10473719.csv", skip = 4)
+```
+View first few rows of the data
+```{r}
+head(pop)
+```
+Drop unnecessary variables
+```{r}
+pop <- pop %>%
+    select("Country.Name",starts_with("X"),-X)
+head(pop)
+```
+
+Remove unncessary variable X2018
+```{r}
+pop <- pop %>%
+    select(-X2018)
+head(pop)
+```
+Drop unnecessary rows
+
+Convert wide to long format
+```{r}
+pop <- gather(pop, "Year","Population",-Country.Name)
+head(pop)
+```
+Remove X from Year
+```{r}
+pop$Year <- str_replace(pop$Year,"X","")
+```
+See data type of the variables
+```{r}
+sapply(pop, class)
+```
+Correct data type by converting Year to Numeric
+```{r}
+pop$Year <- as.numeric(pop$Year)
+```
+
+See again data type of the variables 
+```{r}
+sapply(pop, class)
+```
+Rename variable names
+```{r}
+colnames(pop)[1] <- "Country"
+```
+
+Show first 10 rows
+```{r}
+head(pop,10)
+```
+
+ Perform the analysis requested in the discussion item.
+Worlds total population change over the years
+```{r}
+pop %>%
+    group_by(Year)%>%
+    summarise("Total Population" = sum(Population, na.rm = TRUE))%>%
+    ggplot(aes(Year,`Total Population`))+geom_line()+theme_classic()+ggtitle("World Population Change Over The years")+ylab("Population")
+```
+
+From the graph we can see that world populatin has increased over the years.
+
+Top 10 countries with highest population in 2017
+```{r}
+pop %>%
+    filter(Year == max(Year))%>%
+    arrange(-Population)%>%
+    head(30)
+```
+
+
+Top 10 countries with lowest population in 2017
+```{r}
+pop %>%
+    filter(Year == max(Year))%>%
+    arrange(Population)%>%
+    head(10)
+```
+Conclusion:
+We conclude that world population has increased over the years. China and India has the highest population in 2017.
+Tuvalu has the lowest population in 2017
+
+ Your code should be in an R Markdown file, posted to rpubs.com, and should include
+narrative descriptions of your data cleanup work, analysis, and conclusions.
