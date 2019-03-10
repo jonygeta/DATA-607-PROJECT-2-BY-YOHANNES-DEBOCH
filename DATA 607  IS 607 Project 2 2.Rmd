@@ -1,5 +1,5 @@
 ---
-title: "DATA 607  IS 607 – Project 2 1.Rmd"
+title: "DATA 607  IS 607 Project 2 part 2"
 author: "Yohannes Deboch"
 date: "March 3, 2019"
 output: html_document
